@@ -8,6 +8,7 @@
 #include <vector>
 #include <cmath>
 #ifndef WIN32
+#include <unistd.h>
 #include <sys/time.h>
 #endif
 
