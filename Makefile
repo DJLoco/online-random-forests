@@ -18,7 +18,7 @@ LINKPATH = -L/usr/local/lib
 
 # OPTIMIZED
 CFLAGS = -c -O3 -Wall -march=native -mtune=native -DNDEBUG
-LDFLAGS = -lconfig++ -latlas -llapack
+LDFLAGS = -lconfig++ -lf77blas -latlas -llapack
 
 # Source directory and files
 SOURCEDIR = src
