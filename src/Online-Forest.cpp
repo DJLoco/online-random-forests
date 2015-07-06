@@ -111,9 +111,11 @@ int main(int argc, char *argv[]) {
 
     // Creating the train data
     DataSet dataset_tr, dataset_ts;
-    dataset_tr.loadLIBSVM(hp.trainData);
+    // dataset_tr.loadLIBSVM(hp.trainData);
+    dataset_tr.loadRGBD(hp.trainLabels,hp.trainData, hp.numTrain);    
     if (doT2 || doTesting) {
-        dataset_ts.loadLIBSVM(hp.testData);
+      // dataset_ts.loadLIBSVM(hp.testData);
+      dataset_ts.loadRGBD(hp.testLabels, hp.testData, hp.numTest);
     }
 
     // Calling training/testing

@@ -25,7 +25,12 @@ class Hyperparameters
 
     // Data
     string trainData;
+    string trainLabels;
     string testData;
+    string testLabels;
+
+    int numTrain;
+    int numTest;
 
     // Output
     int verbose;

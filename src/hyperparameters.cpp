@@ -25,7 +25,12 @@ Hyperparameters::Hyperparameters(const string& confFile) {
 
     // Data
     trainData = (const char *) configFile.lookup("Data.trainData");
+    trainLabels = (const char *) configFile.lookup("Data.trainLabels");
     testData = (const char *) configFile.lookup("Data.testData");
+    testLabels = (const char *) configFile.lookup("Data.testLabels");
+
+    numTrain = configFile.lookup("Data.numTrain");
+    numTest = configFile.lookup("Data.numTest");
 
     // Output
     verbose = configFile.lookup("Output.verbose");

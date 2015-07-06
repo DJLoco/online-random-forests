@@ -40,6 +40,7 @@ public:
     void findFeatRange();
 
     void loadLIBSVM(string filename);
+    void loadRGBD(string fileLabels, string fileData, int n_samples);
 };
 
 class Result {
