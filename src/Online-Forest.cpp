@@ -15,7 +15,7 @@ using namespace std;
 using namespace libconfig;
 
 typedef enum {
-    ORT, ORF
+    ORT, ORF, ORFGP
 } CLASSIFIER_TYPE;
 
 //! Prints the interface help message
@@ -108,14 +108,11 @@ int main(int argc, char *argv[]) {
 
     // Load the hyperparameters
     Hyperparameters hp(confFileName);
-
     // Creating the train data
     DataSet dataset_tr, dataset_ts;
-    // dataset_tr.loadLIBSVM(hp.trainData);
-    dataset_tr.loadRGBD(hp.trainLabels,hp.trainData, hp.numTrain);    
+    dataset_tr.loadTrain(hp);
     if (doT2 || doTesting) {
-      // dataset_ts.loadLIBSVM(hp.testData);
-      dataset_ts.loadRGBD(hp.testLabels, hp.testData, hp.numTest);
+      dataset_ts.loadTest(hp);
     }
 
     // Calling training/testing
@@ -139,6 +136,25 @@ int main(int argc, char *argv[]) {
         break;
     }
     case ORF: {
+        OnlineRF model(hp, dataset_tr.m_numClasses, dataset_tr.m_numFeatures, dataset_tr.m_minFeatRange, dataset_tr.m_maxFeatRange);
+        if (doT2) {
+            timeIt(1);
+            model.trainAndTest(dataset_tr, dataset_ts);
+            cout << "Training/Test time: " << timeIt(0) << endl;
+        }
+        if (doTraining) {
+            timeIt(1);
+            model.train(dataset_tr);
+            cout << "Training time: " << timeIt(0) << endl;
+        }
+        if (doTesting) {
+            timeIt(1);
+            model.test(dataset_ts);
+            cout << "Test time: " << timeIt(0) << endl;
+        }
+        break;
+    }
+    case ORFGP: {
         OnlineRF model(hp, dataset_tr.m_numClasses, dataset_tr.m_numFeatures, dataset_tr.m_minFeatRange, dataset_tr.m_maxFeatRange);
         if (doT2) {
             timeIt(1);

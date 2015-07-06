@@ -25,6 +25,23 @@ void DataSet::findFeatRange() {
     }
 }
 
+void DataSet::loadTrain(Hyperparameters hp) {
+    if(hp.trainData.substr(hp.trainData.find_last_of(".")) == ".libsvm") {
+	loadLIBSVM(hp.trainData);
+    } else {
+	loadRGBD(hp.trainLabels, hp.trainData, hp.numTrain);
+    }
+}
+
+void DataSet::loadTest(Hyperparameters hp) {
+    if(hp.trainData.substr(hp.trainData.find_last_of(".")) == ".libsvm") {
+	loadLIBSVM(hp.testData);
+    } else {
+	loadRGBD(hp.testLabels, hp.testData, hp.numTest);
+    }
+}
+
+
 void DataSet::loadRGBD(string fileLabels, string fileData, int n_samples = 0) {
     ifstream fData(fileData.c_str());
     ifstream fLabels(fileLabels.c_str());
@@ -56,7 +73,7 @@ void DataSet::loadRGBD(string fileLabels, string fileData, int n_samples = 0) {
 
     // Reading the data
     m_samples.clear();
-
+ 
     for (int i = 0; i < m_numSamples; i++) {
         wsvector<double> x(m_numFeatures);
         Sample sample;
