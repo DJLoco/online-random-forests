@@ -7,6 +7,7 @@
 #include "hyperparameters.h"
 #include "randomtest.h"
 #include "utilities.h"
+#include "gpc.hpp"
 
 using namespace std;
 
@@ -58,16 +59,21 @@ public:
     Result eval(Sample &sample) {
         if (m_isLeaf) {
             Result result;
-            if (m_counter + m_parentCounter) {
-                result.confidence = m_labelStats;
-                scale(result.confidence, 1.0 / (m_counter + m_parentCounter));
-                result.prediction = m_label;
-            } else {
-                for (int i = 0; i < *m_numClasses; i++) {
-                    result.confidence.push_back(1.0 / *m_numClasses);
-                }
-                result.prediction = 0;
-            }
+			
+			if (m_counter + m_parentCounter) {
+				result.confidence = m_labelStats;
+				scale(result.confidence, 1.0 / (m_counter + m_parentCounter));
+				result.prediction = m_label;
+			} else {
+				for (int i = 0; i < *m_numClasses; i++) {
+					result.confidence.push_back(1.0 / *m_numClasses);
+				}
+				result.prediction = 0;
+			}
+
+			if (gpc != NULL) {
+				result.prediction = gpc.predict(&sample);
+			}
 
             return result;
         } else {
@@ -96,6 +102,8 @@ private:
     OnlineNode* m_leftChildNode;
     OnlineNode* m_rightChildNode;
 
+	GPC gpc;
+
     vector<HyperplaneFeature> m_onlineTests;
     HyperplaneFeature m_bestTest;
 
@@ -122,6 +130,14 @@ private:
 
         return true;
     }
+
+	bool shouldITrainGP() {
+		if (m_depth >= m_hp->maxDepth) { // do not train GP if max depth is not reached
+            return true;
+        }
+
+		return false;
+	}
 
 };
 
