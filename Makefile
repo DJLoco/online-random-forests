@@ -18,7 +18,7 @@ LINKPATH = -L/usr/local/lib
 
 # OPTIMIZED
 CFLAGS = -c -O3 -Wall -march=native -mtune=native -DNDEBUG
-LDFLAGS = -lconfig++ -lf77blas -latlas -llapack
+LDFLAGS = -lconfig++ -lf77blas -latlas -llapack -lgp
 
 # Source directory and files
 SOURCEDIR = src
@@ -37,7 +37,7 @@ $(BUILDTARGET): $(OBJECTS) $(SOURCES) $(HEADERS)
 	$(CC) $(CFLAGS) $(INCLUDEPATH) $< -o $@
 
 debug:
-	$(CC) -g -L/usr/local/lib -lconfig++ -lf77blas -latlas -llapack src/classifier.o src/data.cpp src/hyperparameters.cpp src/Online-Forest.cpp src/onlinenode.o src/onlinerf.o src/onlinetree.o src/randomtest.o src/utilities.o -o Online-Forest
+	$(CC) -g -L/usr/local/lib -lconfig++ -lf77blas -latlas -llapack -lgp src/classifier.o src/data.cpp src/hyperparameters.cpp src/Online-Forest.cpp src/onlinenode.o src/onlinerf.o src/onlinetree.o src/randomtest.o src/utilities.o -o Online-Forest
 
 clean:
 	rm -f $(SOURCEDIR)/*~ $(SOURCEDIR)/*.o
