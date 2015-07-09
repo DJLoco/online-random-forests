@@ -45,7 +45,11 @@ void OnlineNode::update(Sample &sample) {
                     parentStats.first);
             m_leftChildNode = new OnlineNode(*m_hp, *m_numClasses, *m_numFeatures, *m_minFeatRange, *m_maxFeatRange, m_depth + 1,
                     parentStats.second);
-        }
+        } else if(shouldITrainGP()) {
+			// TODO
+			gpc = new GPC(.....);
+			gpc.train(sample);
+		}
     } else {
         if (m_bestTest.eval(sample)) {
             m_rightChildNode->update(sample);
