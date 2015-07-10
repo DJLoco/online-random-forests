@@ -7,7 +7,7 @@
 #include "hyperparameters.h"
 #include "randomtest.h"
 #include "utilities.h"
-#include "gpc.hpp"
+#include "gpc.h"
 
 using namespace std;
 

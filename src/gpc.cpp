@@ -1,4 +1,4 @@
-#include "gpc.hpp"
+#include "gpc.h"
 
 #include <gp-lvm/CMatrix.h>
 
