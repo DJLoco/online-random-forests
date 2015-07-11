@@ -12,7 +12,7 @@ class GPC {
 public:
 	GPC(int n_features, Label unclassified=0, int active_set_size=20);
 
-	void update(Sample s);
+	void update(const Sample& s);
 	Label predict(const SparseVector& features);
 private:
 	int input_dim;

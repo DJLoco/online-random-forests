@@ -100,7 +100,7 @@ GPC::GPC(int n_features, Label unclassified, int active_set_size) {
 }
 
 
-void GPC::update(Sample s) {
+void GPC::update(const Sample& s) {
 	// label
 	buffered_labels->setVal((double) s.y, n_buffered_samples, 0);
 	
