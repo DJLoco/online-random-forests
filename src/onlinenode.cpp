@@ -47,8 +47,10 @@ void OnlineNode::update(Sample &sample) {
                     parentStats.second);
         } else if(shouldITrainGP()) {
 			// TODO
-			gpc = new GPC(.....);
-			gpc.train(sample);
+			if(gpc != NULL) {
+					gpc = new GPC(*m_numFeatures, m_label);
+			}
+			gpc->update(sample);
 		}
     } else {
         if (m_bestTest.eval(sample)) {

@@ -72,7 +72,7 @@ public:
 			}
 
 			if (gpc != NULL) {
-				result.prediction = gpc.predict(&sample);
+				result.prediction = gpc->predict(sample.x);
 			}
 
             return result;
@@ -102,7 +102,7 @@ private:
     OnlineNode* m_leftChildNode;
     OnlineNode* m_rightChildNode;
 
-	GPC gpc;
+	GPC* gpc;
 
     vector<HyperplaneFeature> m_onlineTests;
     HyperplaneFeature m_bestTest;
