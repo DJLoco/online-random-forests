@@ -1,4 +1,4 @@
-#define GMM_USES_BLAS
+//#define GMM_USES_BLAS
 
 #include <cstdlib>
 #include <iostream>
