@@ -5,6 +5,9 @@
 // for 'rsvector_iterator'
 #include <gmm/gmm_vector.h>
 
+// for choosing the two most often occurring labels
+#include <map>
+
 
 /**
  * Return a new label matrix that takes one label out of the others.
@@ -51,22 +54,28 @@ CMatrix* extract_two_labels(CMatrix* labels_matrix, double first_label, double s
 }
 
 void GPC::choose_labels(Label& label1, Label& labels2) {
-	int* counter = new int[n_buffered_samples];
+	std::map<Label,int> counters;
 
 	for(int i=0; i<n_buffered_samples; i++) {
-		counter[ (int) buffered_labels->getVal(i,0) ]++;
+		Label l = buffered_labels->getVal(i,0);
+
+		if(counters.find(l) == counters.end()) {
+			counters.insert(std::map<Label,int>::value_type(l,1));
+		} else {
+			counters[l]++;
+		}
 	}
 
-	int max1 = unclassified;
-	int max2 = unclassified;
+	Label max1 = unclassified;
+	Label max2 = unclassified;
 
-	for(int i=0; i<n_buffered_samples; i++) {
-		if(max1 == unclassified || counter[i] > counter[max1]) {
+	for(std::map<Label,int>::iterator i=counters.begin(); i != counters.end(); i++) {
+		if(max1 == unclassified || i->second > counters[max1]) {
 			max2 = max1;
-			max1 = i;
+			max1 = i->first;
 		}
-		else if(max2 == unclassified || counter[i] > counter[max2]) {
-			max2 = i;
+		else if(max2 == unclassified || i->second > counters[max2]) {
+			max2 = i->first;
 		}
 	}
 
@@ -97,6 +106,8 @@ GPC::GPC(int n_features, Label unclassified, int active_set_size) {
 	prior->setParam(1.0, 1);
 
 	kernel->addPrior(prior,1);
+
+	predictor = (CIvm*) NULL;
 }
 
 
@@ -112,7 +123,7 @@ void GPC::update(const Sample& s) {
 	n_buffered_samples++;
 
 	// do we have enough samples for training?
-	if(n_buffered_samples > active_set_size + 1) {
+	if(n_buffered_samples > active_set_size) {
 
 		// do we already have a classifier?
 		if( predictor == NULL ) {
