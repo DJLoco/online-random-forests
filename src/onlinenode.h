@@ -30,6 +30,8 @@ public:
             HyperplaneFeature test(numClasses, numFeatures, hp.numProjectionFeatures, minFeatRange, maxFeatRange);
             m_onlineTests.push_back(test);
         }
+
+		gpc = NULL;
     }
 
     OnlineNode(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const vector<double> &minFeatRange,
@@ -45,6 +47,8 @@ public:
             HyperplaneFeature test(numClasses, numFeatures, hp.numProjectionFeatures, minFeatRange, maxFeatRange);
             m_onlineTests.push_back(test);
         }
+
+		gpc = NULL;
     }
 
     ~OnlineNode() {
