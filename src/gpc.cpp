@@ -8,6 +8,9 @@
 // for choosing the two most often occurring labels
 #include <map>
 
+typedef gmm::rsvector_iterator<double> feature_it;
+typedef gmm::rsvector_const_iterator<double> const_feature_it;
+
 
 /**
  * Return a new label matrix that takes one label out of the others.
@@ -53,48 +56,50 @@ CMatrix* extract_two_labels(CMatrix* labels_matrix, double first_label, double s
 	return result;
 }
 
-void GPC::choose_labels(Label& label1, Label& labels2) {
-	std::map<Label,int> counters;
-
-	for(int i=0; i<n_buffered_samples; i++) {
-		Label l = buffered_labels->getVal(i,0);
-
-		if(counters.find(l) == counters.end()) {
-			counters.insert(std::map<Label,int>::value_type(l,1));
-		} else {
-			counters[l]++;
-		}
-	}
+/**
+ * Decide which two labels to classify using the data collected in the buffer.
+ *
+ * This routine determines which two labels occur most often in the collected
+ * data and makes them being classified.
+ */
+void GPC::choose_labels_from_buffer() {
+	// get the two most used labels
+	bool max1_defined = false;
+	bool max2_defined = false;
 
 	Label max1 = unclassified;
 	Label max2 = unclassified;
 
-	for(std::map<Label,int>::iterator i=counters.begin(); i != counters.end(); i++) {
-		if(max1 == unclassified || i->second > counters[max1]) {
+	for(std::map<Label,int>::iterator i=label_counter.begin(); i != label_counter.end(); i++) {
+		if(!max1_defined || i->second > label_counter[max1]) {
 			max2 = max1;
 			max1 = i->first;
+			max1_defined = true;
 		}
-		else if(max2 == unclassified || i->second > counters[max2]) {
+		else if(!max2_defined || i->second > label_counter[max2]) {
 			max2 = i->first;
+			max2_defined = true;
 		}
 	}
 
+	// set the chosen labels
 	label1 = max1;
 	label2 = max2;
 }
 
+bool GPC::is_pure() {
+	return (label_counter.size() < 2);
+}
 
-GPC::GPC(int n_features, Label unclassified, int active_set_size) {
+
+GPC::GPC(int n_features, Label unclassified, int active_set_size) : buffered_samples(), label_counter() {
+	state = INIT;
 	input_dim = n_features;
 
 	this->unclassified = unclassified;
 	this->active_set_size = active_set_size;
 
 	select_crit = CIvm::ENTROPY;
-
-	n_buffered_samples = 0;
-	buffered_labels = new CMatrix(active_set_size + 1, 1);
-	buffered_features = new CMatrix(active_set_size + 1, n_features);
 
 	// noise will be initialized in the training routine
 	// s.t. the target can be set
@@ -111,54 +116,111 @@ GPC::GPC(int n_features, Label unclassified, int active_set_size) {
 }
 
 
+void GPC::get_training_matrices(CMatrix*& training_labels, CMatrix*& training_features) {
+
+	int n_samples = label_counter[label1] + label_counter[label2];
+
+	training_labels = new CMatrix(n_samples, 1);
+	training_features = new CMatrix(n_samples, input_dim);
+
+	int row = 0;
+
+	for(std::vector<Sample>::iterator it=buffered_samples.begin(); it != buffered_samples.end(); it++) {
+		if(it->y != label1 && it->y != label2)
+			continue;
+
+		training_labels->setVal(it->y, row, 0);
+
+		int col = 0;
+
+		for(feature_it ft=feature_it(it->x.begin()); ft != feature_it(it->x.end()); ft++) {
+			training_features->setVal(*ft, row, col++);
+		}
+
+		row++;
+	}
+
+	// TODO: memory leak: delete training_labels before overwriting
+	training_labels = extract_two_labels(training_labels, label1, label2);
+}
+
+
+/**
+ * Train the classifier with a new sample.
+ *
+ * We collect the training data, until the number of collected
+ * samples exceeds the "active set size" of the gaussian process
+ * classifier.
+ * If we have already decided which labels to train, the input data
+ * will be filtered immediately. Samples with other labels will be
+ * thrown away.
+ * If we have not yet decided which labels to train, we fill the buffer
+ * matrix with all samples we get, then decide which labels to classify
+ * and filter the data we got so far.
+ *
+ * @param s the sample to be trained
+ */
 void GPC::update(const Sample& s) {
-	// label
-	buffered_labels->setVal((double) s.y, n_buffered_samples, 0);
-	
-	// features
-	for(int i=0; i<input_dim; i++) {
-		buffered_features->setVal(s.x[i], n_buffered_samples, i);
+
+	buffered_samples.push_back(s);
+
+	// update the label counter
+	if(label_counter.find(s.y) == label_counter.end()) {
+		label_counter.insert(std::map<Label,int>::value_type(s.y,1));
+	} else {
+		label_counter[s.y]++;
 	}
 
-	n_buffered_samples++;
 
-	// do we have enough samples for training?
-	if(n_buffered_samples > active_set_size) {
+	switch(state) {
 
-		// do we already have a classifier?
-		if( predictor == NULL ) {
-			// no noise model existing yet => create new noise model
-			noise = new CProbitNoise( buffered_labels );
-
-			choose_labels(label1, label2);
-		}
-		else {
-			// noise model is already existing => adapt model
-			CMatrix noiseParams(1, noise->getNumParams());
-			noise->getParams( noiseParams );
-			noise->setTarget( buffered_labels );
-			noise->setParams( noiseParams );
+	case INIT:
+		if(!is_pure() && buffered_samples.size() > active_set_size) {
+			choose_labels_from_buffer();
+			state = TRAIN;
 		}
 
-		CMatrix* filtered_labels = extract_two_labels(buffered_labels, label1, label2);
+		break;
 
-		// update the GP
-		predictor = new CIvm(buffered_features, filtered_labels, kernel, noise, select_crit, active_set_size, 3);
-		predictor->optimise();
+	case TRAIN:
+		// check if we have collected enough data to initiate training
+		if(!is_pure() && label_counter[label1] + label_counter[label2] > active_set_size) {
 
-		delete filtered_labels;
+			// copy the relevant samples into a matrix
+			CMatrix* training_labels;
+			CMatrix* training_features;
+			get_training_matrices(training_labels, training_features);
 
-		// reset the counter
-		n_buffered_samples = 0;
+			// is this the first learning cycle?
+			if(predictor == NULL) {
+				// no noise model existing yet => create new noise model
+				noise = new CProbitNoise( training_labels );
+			}
+			else {
+				// noise model is already existing => adapt model
+				CMatrix noiseParams(1, noise->getNumParams());
+				noise->getParams( noiseParams );
+				noise->setTarget( training_labels );
+				noise->setParams( noiseParams );
+			}
+
+			// update the gaussian process model
+			predictor = new CIvm(training_features, training_labels, kernel, noise, select_crit, active_set_size, 3);
+			predictor->optimise();
+
+			// reset the counters for the labels
+			label_counter = std::map<Label,int>();
+		}
+
+		break;
 	}
-
 
 }
 
 Label GPC::predict(const SparseVector& features) {
 	vector<double> feature_vec(
-		       gmm::rsvector_const_iterator<double>(features.begin()),
-		       gmm::rsvector_const_iterator<double>(features.end())
+		       const_feature_it(features.begin()),
+		       const_feature_it(features.end())
 	);
 
 	if(predictor != NULL) {
@@ -167,7 +229,7 @@ Label GPC::predict(const SparseVector& features) {
 
 		predictor->out(pred, ft);
 
-		return pred.getVal(0,0);
+		return (pred.getVal(0,0) == 1) ? label1 : label2;
 	}
 	else {
 		return unclassified;
