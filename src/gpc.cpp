@@ -70,13 +70,13 @@ void GPC::choose_labels_from_buffer() {
 	Label max1 = unclassified;
 	Label max2 = unclassified;
 
-	for(std::map<Label,int>::iterator i=label_counter.begin(); i != label_counter.end(); i++) {
-		if(!max1_defined || i->second > label_counter[max1]) {
+	for(std::map<Label,int>::iterator i=label_counter->begin(); i != label_counter->end(); i++) {
+		if(!max1_defined || i->second > (*label_counter)[max1]) {
 			max2 = max1;
 			max1 = i->first;
 			max1_defined = true;
 		}
-		else if(!max2_defined || i->second > label_counter[max2]) {
+		else if(!max2_defined || i->second > (*label_counter)[max2]) {
 			max2 = i->first;
 			max2_defined = true;
 		}
@@ -88,11 +88,11 @@ void GPC::choose_labels_from_buffer() {
 }
 
 bool GPC::is_pure() {
-	return (label_counter.size() < 2);
+	return (label_counter->size() < 2);
 }
 
 
-GPC::GPC(int n_features, Label unclassified, int active_set_size) : buffered_samples(), label_counter() {
+GPC::GPC(int n_features, Label unclassified, int active_set_size) {
 	state = INIT;
 	input_dim = n_features;
 
@@ -100,6 +100,9 @@ GPC::GPC(int n_features, Label unclassified, int active_set_size) : buffered_sam
 	this->active_set_size = active_set_size;
 
 	select_crit = CIvm::ENTROPY;
+
+	buffered_samples = new std::vector<Sample>();
+	label_counter = new std::map<Label,int>();
 
 	// noise will be initialized in the training routine
 	// s.t. the target can be set
@@ -118,14 +121,14 @@ GPC::GPC(int n_features, Label unclassified, int active_set_size) : buffered_sam
 
 void GPC::get_training_matrices(CMatrix*& training_labels, CMatrix*& training_features) {
 
-	int n_samples = label_counter[label1] + label_counter[label2];
+	int n_samples = (*label_counter)[label1] + (*label_counter)[label2];
 
 	training_labels = new CMatrix(n_samples, 1);
 	training_features = new CMatrix(n_samples, input_dim);
 
 	int row = 0;
 
-	for(std::vector<Sample>::iterator it=buffered_samples.begin(); it != buffered_samples.end(); it++) {
+	for(std::vector<Sample>::iterator it=buffered_samples->begin(); it != buffered_samples->end(); it++) {
 		if(it->y != label1 && it->y != label2)
 			continue;
 
@@ -162,20 +165,20 @@ void GPC::get_training_matrices(CMatrix*& training_labels, CMatrix*& training_fe
  */
 void GPC::update(const Sample& s) {
 
-	buffered_samples.push_back(s);
+	buffered_samples->push_back(s);
 
 	// update the label counter
-	if(label_counter.find(s.y) == label_counter.end()) {
-		label_counter.insert(std::map<Label,int>::value_type(s.y,1));
+	if(label_counter->find(s.y) == label_counter->end()) {
+		label_counter->insert(std::map<Label,int>::value_type(s.y,1));
 	} else {
-		label_counter[s.y]++;
+		(*label_counter)[s.y]++;
 	}
 
 
 	switch(state) {
 
 	case INIT:
-		if(!is_pure() && buffered_samples.size() > active_set_size) {
+		if(!is_pure() && buffered_samples->size() > active_set_size) {
 			choose_labels_from_buffer();
 			state = TRAIN;
 		}
@@ -184,7 +187,7 @@ void GPC::update(const Sample& s) {
 
 	case TRAIN:
 		// check if we have collected enough data to initiate training
-		if(!is_pure() && label_counter[label1] + label_counter[label2] > active_set_size) {
+		if(!is_pure() && (*label_counter)[label1] + (*label_counter)[label2] > active_set_size) {
 
 			// copy the relevant samples into a matrix
 			CMatrix* training_labels;
@@ -209,7 +212,10 @@ void GPC::update(const Sample& s) {
 			predictor->optimise();
 
 			// reset the counters for the labels
-			label_counter = std::map<Label,int>();
+			delete buffered_samples;
+			delete label_counter;
+			buffered_samples = new std::vector<Sample>();
+			label_counter = new std::map<Label,int>();
 		}
 
 		break;
