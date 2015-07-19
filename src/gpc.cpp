@@ -136,8 +136,8 @@ void GPC::get_training_matrices(CMatrix*& training_labels, CMatrix*& training_fe
 
 		int col = 0;
 
-		for(feature_it ft=feature_it(it->x.begin()); ft != feature_it(it->x.end()); ft++) {
-			training_features->setVal(*ft, row, col++);
+		for(feature_it ft=feature_it(it->x.begin()); col < input_dim; ft++, col++) {
+			training_features->setVal(*ft, row, col);
 		}
 
 		row++;
@@ -224,10 +224,13 @@ void GPC::update(const Sample& s) {
 }
 
 Label GPC::predict(const SparseVector& features) {
-	vector<double> feature_vec(
-		       const_feature_it(features.begin()),
-		       const_feature_it(features.end())
-	);
+	vector<double> feature_vec;
+
+	int fi = 0;
+
+	for(const_feature_it iter=const_feature_it(features.begin()); fi<features.size(); fi++, iter++) {
+		feature_vec.push_back(*iter);
+	}
 
 	if(predictor != NULL) {
 		CMatrix ft(1, input_dim, feature_vec);
