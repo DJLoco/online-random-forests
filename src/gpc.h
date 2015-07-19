@@ -37,12 +37,12 @@ private:
 	CNoise* noise;
 	CIvm* predictor;
 
-	std::vector<Sample> buffered_samples;
+	std::vector<Sample>* buffered_samples;
 
 	// hash map from the labels to their number of occurances
 	// it is only used during the initialization phase for choosing
 	// the labels that occur most often
-	std::map<Label,int> label_counter;
+	std::map<Label,int>* label_counter;
 
 	Label label1, label2;
 	Label unclassified;
