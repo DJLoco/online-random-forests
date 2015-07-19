@@ -209,7 +209,7 @@ void GPC::update(const Sample& s) {
 
 			// update the gaussian process model
 			predictor = new CIvm(training_features, training_labels, kernel, noise, select_crit, active_set_size, 3);
-			predictor->optimise();
+			predictor->optimise(5,10,10);
 
 			// reset the counters for the labels
 			delete buffered_samples;
