@@ -7,7 +7,7 @@
 #include "hyperparameters.h"
 #include "randomtest.h"
 #include "utilities.h"
-#include "gpc.h"
+#include "mgpc.h"
 
 using namespace std;
 
@@ -31,7 +31,7 @@ public:
             m_onlineTests.push_back(test);
         }
 
-		gpc = NULL;
+		mgpc = NULL;
     }
 
     OnlineNode(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const vector<double> &minFeatRange,
@@ -48,7 +48,7 @@ public:
             m_onlineTests.push_back(test);
         }
 
-		gpc = NULL;
+		mgpc = NULL;
     }
 
     ~OnlineNode() {
@@ -75,8 +75,8 @@ public:
 				result.prediction = 0;
 			}
 
-			if (gpc != NULL) {
-				result.prediction = gpc->predict(sample.x);
+			if (mgpc != NULL) {
+				result.prediction = mgpc->predict(sample.x);
 			}
 
             return result;
@@ -106,7 +106,7 @@ private:
     OnlineNode* m_leftChildNode;
     OnlineNode* m_rightChildNode;
 
-	GPC* gpc;
+	MGPC* mgpc;
 
     vector<HyperplaneFeature> m_onlineTests;
     HyperplaneFeature m_bestTest;

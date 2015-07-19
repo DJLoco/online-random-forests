@@ -47,10 +47,10 @@ void OnlineNode::update(Sample &sample) {
                     parentStats.second);
         } else if(shouldITrainGP()) {
 			// TODO
-			if(gpc == NULL) {
-					gpc = new GPC(*m_numFeatures, m_label);
+			if(mgpc == NULL) {
+					mgpc = new MGPC(*m_numFeatures, m_label);
 			}
-			gpc->update(sample);
+			mgpc->update(sample);
 		}
     } else {
         if (m_bestTest.eval(sample)) {
