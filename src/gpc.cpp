@@ -2,14 +2,14 @@
 
 #include <gp-lvm/CMatrix.h>
 
-// for 'rsvector_iterator'
-#include <gmm/gmm_vector.h>
+// for 'rsvector_dense_iterator'
+#include "rsvector_dense_iterator.h"
 
 // for choosing the two most often occurring labels
 #include <map>
 
-typedef gmm::rsvector_iterator<double> feature_it;
-typedef gmm::rsvector_const_iterator<double> const_feature_it;
+typedef rsvector_dense_iterator feature_it;
+typedef rsvector_const_dense_iterator const_feature_it;
 
 
 /**
