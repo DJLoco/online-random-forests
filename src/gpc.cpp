@@ -12,6 +12,18 @@ typedef rsvector_dense_iterator feature_it;
 typedef rsvector_const_dense_iterator const_feature_it;
 
 
+vector<double>& to_dense_vector(const SparseVector& sv) {
+	vector<double>* result = new vector<double>;
+
+	int fi = 0;
+
+	for(const_feature_it iter=const_feature_it(sv.begin()); fi<sv.size(); fi++, iter++) {
+		result->push_back(*iter);
+	}
+
+	return *result;
+}
+
 /**
  * Return a new label matrix that takes one label out of the others.
  *
@@ -224,13 +236,7 @@ void GPC::update(const Sample& s) {
 }
 
 Label GPC::predict(const SparseVector& features) {
-	vector<double> feature_vec;
-
-	int fi = 0;
-
-	for(const_feature_it iter=const_feature_it(features.begin()); fi<features.size(); fi++, iter++) {
-		feature_vec.push_back(*iter);
-	}
+	vector<double> feature_vec = to_dense_vector(features);
 
 	if(predictor != NULL) {
 		CMatrix ft(1, input_dim, feature_vec);
@@ -243,5 +249,19 @@ Label GPC::predict(const SparseVector& features) {
 	else {
 		return unclassified;
 	}
+}
+
+double GPC::likelihood(Label prediction, const SparseVector& features) {
+	vector<double> feature_vec = to_dense_vector(features);
+
+	CMatrix pred_mat(1,1, (double) prediction);
+	CMatrix result_mat(1,1);
+	CMatrix feature_mat(1, input_dim, feature_vec);
+
+	if(predictor != NULL) {
+		predictor->likelihoods(result_mat, pred_mat, feature_mat);
+	}
+
+	return result_mat.getVal(1,1);
 }
 
