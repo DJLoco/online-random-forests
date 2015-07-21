@@ -22,6 +22,7 @@ public:
 
 	void update(const Sample& s);
 	Label predict(const SparseVector& features);
+	double likelihood(Label prediction, const SparseVector& features);
 private:
 	gpc_state state;
 
