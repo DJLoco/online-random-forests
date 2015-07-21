@@ -18,7 +18,7 @@ typedef enum {
 
 class GPC {
 public:
-	GPC(int n_features, Label unclassified=0, int active_set_size=20);
+	GPC(int n_features, Label unclassified=0, int active_set_size=20, unsigned int max_iters=0, unsigned int kern_iters=0, unsigned int noise_iters=0);
 
 	void update(const Sample& s);
 	Label predict(const SparseVector& features);
@@ -37,6 +37,11 @@ private:
 	CKern* kernel;
 	CNoise* noise;
 	CIvm* predictor;
+
+	bool default_optimization_params;
+	unsigned int max_iters;
+	unsigned int kern_iters;
+	unsigned int noise_iters;
 
 	std::vector<Sample>* buffered_samples;
 
