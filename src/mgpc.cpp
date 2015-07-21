@@ -25,6 +25,14 @@ void MGPC::update(const Sample& s) {
 }
 
 Label MGPC::predict(const SparseVector& features) {
-	// TODO
-	return label;
+	int argmax = 0;
+	int max = 0;
+	for (int i = 0; i < 5; i++) {
+		if(max < mgpc_map[i]->likelihood(i, features)) {
+			max = mgpc_map[i]->likelihood(i, features);
+			argmax = i;
+		}
+	}
+
+	return argmax;
 }
