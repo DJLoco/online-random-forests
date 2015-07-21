@@ -260,7 +260,7 @@ double GPC::likelihood(Label prediction, const SparseVector& features) {
 
 	if(predictor != NULL) {
 		predictor->likelihoods(result_mat, pred_mat, feature_mat);
-		return result_mat.getVal(1,1);
+		return result_mat.getVal(0,0);
 	}
 	else {
 		// no valid prediction possible => no likelihood!
