@@ -18,9 +18,11 @@ public:
     }
 
     OnlineNode(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const vector<double> &minFeatRange,
-            const vector<double> &maxFeatRange, const int &depth) :
+			   const vector<double> &maxFeatRange, const int &depth, int enableGP) :
         m_numClasses(&numClasses), m_numFeatures(&numFeatures), m_depth(depth), m_isLeaf(true), m_counter(0.0), m_label(-1),
-                m_parentCounter(0.0), m_hp(&hp), m_minFeatRange(&minFeatRange), m_maxFeatRange(&maxFeatRange) {
+			m_parentCounter(0.0), m_hp(&hp), m_minFeatRange(&minFeatRange), m_maxFeatRange(&maxFeatRange) {
+		
+		this->enableGP = enableGP;
         for (int i = 0; i < numClasses; i++) {
             m_labelStats.push_back(0.0);
         }
@@ -35,10 +37,12 @@ public:
     }
 
     OnlineNode(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const vector<double> &minFeatRange,
-            const vector<double> &maxFeatRange, const int &depth, const vector<double> &parentStats) :
+			   const vector<double> &maxFeatRange, const int &depth, const vector<double> &parentStats, int enableGP) :
         m_numClasses(&numClasses), m_numFeatures(&numFeatures), m_depth(depth), m_isLeaf(true), m_counter(0.0), m_label(-1),
                 m_parentCounter(0.0), m_hp(&hp), m_minFeatRange(&minFeatRange), m_maxFeatRange(&maxFeatRange) {
-        m_labelStats = parentStats;
+        
+			this->enableGP = enableGP;
+		m_labelStats = parentStats;
         m_label = argmax(m_labelStats);
         m_parentCounter = sum(m_labelStats);
 
@@ -51,7 +55,7 @@ public:
 		mgpc = NULL;
     }
 
-    ~OnlineNode() {
+     ~OnlineNode() {
         if (!m_isLeaf) {
             delete m_leftChildNode;
             delete m_rightChildNode;
@@ -106,6 +110,7 @@ private:
     OnlineNode* m_leftChildNode;
     OnlineNode* m_rightChildNode;
 
+	int enableGP;
 	MGPC* mgpc;
 
     vector<HyperplaneFeature> m_onlineTests;

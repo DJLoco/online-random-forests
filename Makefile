@@ -10,11 +10,11 @@ LINKPATH = -L/usr/local/lib
 
 # PROFILING
 #CFLAGS = -c -pg -O0 -Wall
-#LDFLAGS = -lconfig++ -pg -latlas -llapack
+#LDFLAGS = -lconfig++ -pg -latlas -llapack -lgp
 
 # DEBUG
-#CFLAGS = -c -g -O0 -Wall
-#LDFLAGS = -lconfig++ -latlas -llapack
+#CFLAGS = -c -ggdb -O0 -Wall
+#LDFLAGS = -lconfig++ -latlas -llapack -lgp
 
 # OPTIMIZED
 CFLAGS = -c -O3 -Wall -march=native -mtune=native -DNDEBUG

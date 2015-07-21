@@ -15,7 +15,7 @@ using namespace std;
 using namespace libconfig;
 
 typedef enum {
-    ORT, ORF, ORFGP
+    ORT, ORTGP, ORF, ORFGP
 } CLASSIFIER_TYPE;
 
 //! Prints the interface help message
@@ -26,7 +26,9 @@ void help() {
     cout << "\t -h | --help : \t will display this message." << endl;
     cout << "\t -c : \t\t path to the config file." << endl << endl;
     cout << "\t --ort : \t use Online Random Tree (ORT) algorithm." << endl;
+	cout << "\t --ortgp : \t use Online Random Tree with GP (ORTGP) algorithm." << endl;
     cout << "\t --orf : \t use Online Random Forest (ORF) algorithm." << endl;
+    cout << "\t --orfgp : \t use Online Random Forest with GP (ORFGP) algorithm." << endl;
     cout << endl << endl;
     cout << "\t --train : \t train the classifier." << endl;
     cout << "\t --test : \t test the classifier." << endl;
@@ -62,6 +64,7 @@ int main(int argc, char *argv[]) {
     // Parsing command line
     string confFileName;
     int classifier = -1, doTraining = false, doTesting = false, doT2 = false, inputCounter = 1;
+	int enableGP = false;
 
     if (argc == 1) {
         cout << "\tNo input argument specified: aborting." << endl;
@@ -77,8 +80,12 @@ int main(int argc, char *argv[]) {
             confFileName = argv[++inputCounter];
         } else if (!strcmp(argv[inputCounter], "--ort")) {
             classifier = ORT;
+        } else if (!strcmp(argv[inputCounter], "--ortgp")) {
+            classifier = ORTGP;
         } else if (!strcmp(argv[inputCounter], "--orf")) {
             classifier = ORF;
+		} else if (!strcmp(argv[inputCounter], "--orfgp")) { 
+			classifier = ORFGP;
         } else if (!strcmp(argv[inputCounter], "--train")) {
             doTraining = true;
         } else if (!strcmp(argv[inputCounter], "--test")) {
@@ -118,7 +125,26 @@ int main(int argc, char *argv[]) {
     // Calling training/testing
     switch (classifier) {
     case ORT: {
-        OnlineTree model(hp, dataset_tr.m_numClasses, dataset_tr.m_numFeatures, dataset_tr.m_minFeatRange, dataset_tr.m_maxFeatRange);
+        OnlineTree model(hp, dataset_tr.m_numClasses, dataset_tr.m_numFeatures, dataset_tr.m_minFeatRange, dataset_tr.m_maxFeatRange, enableGP);
+        if (doT2) {
+            timeIt(1);
+            model.trainAndTest(dataset_tr, dataset_ts);
+            cout << "Training/Test time: " << timeIt(0) << endl;
+        }
+        if (doTraining) {
+            timeIt(1);
+            model.train(dataset_tr);
+            cout << "Training time: " << timeIt(0) << endl;
+        } else if (doTesting) {
+            timeIt(1);
+            model.test(dataset_ts);
+            cout << "Test time: " << timeIt(0) << endl;
+        }
+        break;
+    }
+	case ORTGP: {
+		enableGP = true;
+        OnlineTree model(hp, dataset_tr.m_numClasses, dataset_tr.m_numFeatures, dataset_tr.m_minFeatRange, dataset_tr.m_maxFeatRange, enableGP);
         if (doT2) {
             timeIt(1);
             model.trainAndTest(dataset_tr, dataset_ts);
@@ -136,7 +162,8 @@ int main(int argc, char *argv[]) {
         break;
     }
     case ORF: {
-        OnlineRF model(hp, dataset_tr.m_numClasses, dataset_tr.m_numFeatures, dataset_tr.m_minFeatRange, dataset_tr.m_maxFeatRange);
+		enableGP = false;
+        OnlineRF model(hp, dataset_tr.m_numClasses, dataset_tr.m_numFeatures, dataset_tr.m_minFeatRange, dataset_tr.m_maxFeatRange, enableGP);
         if (doT2) {
             timeIt(1);
             model.trainAndTest(dataset_tr, dataset_ts);
@@ -155,7 +182,8 @@ int main(int argc, char *argv[]) {
         break;
     }
     case ORFGP: {
-        OnlineRF model(hp, dataset_tr.m_numClasses, dataset_tr.m_numFeatures, dataset_tr.m_minFeatRange, dataset_tr.m_maxFeatRange);
+		enableGP = true;
+        OnlineRF model(hp, dataset_tr.m_numClasses, dataset_tr.m_numFeatures, dataset_tr.m_minFeatRange, dataset_tr.m_maxFeatRange, enableGP);
         if (doT2) {
             timeIt(1);
             model.trainAndTest(dataset_tr, dataset_ts);
