@@ -14,14 +14,14 @@ using namespace std;
 class OnlineTree: public Classifier {
 public:
     OnlineTree(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const vector<double> &minFeatRange,
-            const vector<double> &maxFeatRange) :
-        m_counter(0.0), m_hp(&hp) {
-        m_rootNode = new OnlineNode(hp, numClasses, numFeatures, minFeatRange, maxFeatRange, 0);
-    }
+	  	       const vector<double> &maxFeatRange, int enableGP) :
+	m_counter(0.0), m_hp(&hp) {
+		m_rootNode = new OnlineNode(hp, numClasses, numFeatures, minFeatRange, maxFeatRange, 0, enableGP);
+	}
 
-    ~OnlineTree() {
-        delete m_rootNode;
-    }
+	~OnlineTree() {
+		delete m_rootNode;
+	}
 
     virtual void update(Sample &sample) {
         m_rootNode->update(sample);

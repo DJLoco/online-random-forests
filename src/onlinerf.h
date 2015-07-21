@@ -10,11 +10,11 @@
 class OnlineRF: public Classifier {
 public:
     OnlineRF(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const vector<double> &minFeatRange,
-            const vector<double> &maxFeatRange) :
+			 const vector<double> &maxFeatRange, int enableGP) :
         m_numClasses(&numClasses), m_counter(0.0), m_oobe(0.0), m_hp(&hp) {
         OnlineTree *tree;
         for (int i = 0; i < hp.numTrees; i++) {
-            tree = new OnlineTree(hp, numClasses, numFeatures, minFeatRange, maxFeatRange);
+            tree = new OnlineTree(hp, numClasses, numFeatures, minFeatRange, maxFeatRange, enableGP);
             m_trees.push_back(tree);
         }
     }

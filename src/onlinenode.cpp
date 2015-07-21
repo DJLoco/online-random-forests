@@ -42,10 +42,10 @@ void OnlineNode::update(Sample &sample) {
             // Split
             pair<vector<double> , vector<double> > parentStats = m_bestTest.getStats();
             m_rightChildNode = new OnlineNode(*m_hp, *m_numClasses, *m_numFeatures, *m_minFeatRange, *m_maxFeatRange, m_depth + 1,
-                    parentStats.first);
+											  parentStats.first, enableGP);
             m_leftChildNode = new OnlineNode(*m_hp, *m_numClasses, *m_numFeatures, *m_minFeatRange, *m_maxFeatRange, m_depth + 1,
-                    parentStats.second);
-        } else if(shouldITrainGP()) {
+											 parentStats.second, enableGP);
+        } else if(shouldITrainGP() && enableGP) {
 			// TODO
 			if(gpc == NULL) {
 					gpc = new GPC(*m_numFeatures, m_label);
