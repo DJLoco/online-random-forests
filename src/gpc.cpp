@@ -104,12 +104,16 @@ bool GPC::is_pure() {
 }
 
 
-GPC::GPC(int n_features, Label unclassified, int active_set_size) {
+GPC::GPC(int n_features, Label unclassified, int active_set_size, unsigned int max_iters, unsigned int kern_iters, unsigned int noise_iters) {
 	state = INIT;
 	input_dim = n_features;
 
 	this->unclassified = unclassified;
 	this->active_set_size = active_set_size;
+	this->max_iters = max_iters;
+	this->kern_iters = kern_iters;
+	this->noise_iters = noise_iters;
+	this->default_optimization_params = (noise_iters == 0);
 
 	select_crit = CIvm::ENTROPY;
 
@@ -221,7 +225,11 @@ void GPC::update(const Sample& s) {
 
 			// update the gaussian process model
 			predictor = new CIvm(training_features, training_labels, kernel, noise, select_crit, active_set_size, 3);
-			predictor->optimise(5,10,10);
+
+			if(default_optimization_params)
+				predictor->optimise();
+			else
+				predictor->optimise(max_iters, kern_iters, noise_iters);
 
 			// reset the counters for the labels
 			delete buffered_samples;
