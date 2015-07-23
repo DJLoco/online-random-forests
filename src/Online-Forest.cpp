@@ -15,7 +15,7 @@ using namespace std;
 using namespace libconfig;
 
 typedef enum {
-    ORT, ORTGP, ORF, ORFGP
+    ORT, ORTGP, ORF, ORFGP, OGP
 } CLASSIFIER_TYPE;
 
 //! Prints the interface help message
@@ -86,6 +86,8 @@ int main(int argc, char *argv[]) {
             classifier = ORF;
 		} else if (!strcmp(argv[inputCounter], "--orfgp")) { 
 			classifier = ORFGP;
+		} else if (!strcmp(argv[inputCounter], "--ogp")) { 
+			classifier = OGP;
         } else if (!strcmp(argv[inputCounter], "--train")) {
             doTraining = true;
         } else if (!strcmp(argv[inputCounter], "--test")) {
@@ -184,6 +186,25 @@ int main(int argc, char *argv[]) {
     case ORFGP: {
 		enableGP = true;
         OnlineRF model(hp, dataset_tr.m_numClasses, dataset_tr.m_numFeatures, dataset_tr.m_minFeatRange, dataset_tr.m_maxFeatRange, enableGP);
+        if (doT2) {
+            timeIt(1);
+            model.trainAndTest(dataset_tr, dataset_ts);
+            cout << "Training/Test time: " << timeIt(0) << endl;
+        }
+        if (doTraining) {
+            timeIt(1);
+            model.train(dataset_tr);
+            cout << "Training time: " << timeIt(0) << endl;
+        }
+        if (doTesting) {
+            timeIt(1);
+            model.test(dataset_ts);
+            cout << "Test time: " << timeIt(0) << endl;
+        }
+        break;
+    }
+	case OGP: {
+		MGPC model(hp, dataset_tr.m_numClasses, dataset_tr.m_numFeatures);
         if (doT2) {
             timeIt(1);
             model.trainAndTest(dataset_tr, dataset_ts);
