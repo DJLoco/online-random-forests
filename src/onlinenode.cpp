@@ -38,7 +38,7 @@ void OnlineNode::update(Sample &sample) {
                 cout << "--- Splitting node --- best score: " << maxScore;
                 cout << " by test number: " << maxIndex << endl;
             }
-
+			
             // Split
             pair<vector<double> , vector<double> > parentStats = m_bestTest.getStats();
             m_rightChildNode = new OnlineNode(*m_hp, *m_numClasses, *m_numFeatures, *m_minFeatRange, *m_maxFeatRange, m_depth + 1,
@@ -46,9 +46,8 @@ void OnlineNode::update(Sample &sample) {
             m_leftChildNode = new OnlineNode(*m_hp, *m_numClasses, *m_numFeatures, *m_minFeatRange, *m_maxFeatRange, m_depth + 1,
 											 parentStats.second, enableGP);
         } else if(shouldITrainGP() && enableGP) {
-			// TODO
 			if(mgpc == NULL) {
-					mgpc = new MGPC(*m_numFeatures, m_label);
+				mgpc = new MGPC(*m_numClasses, *m_numFeatures, m_label);
 			}
 			mgpc->update(sample);
 		}
