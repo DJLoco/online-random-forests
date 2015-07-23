@@ -1,14 +1,13 @@
 #include "mgpc.h"
 
-//const int MGPC::m_numClasses;
-
 MGPC::MGPC(const int &numClasses, const int &numFeatures, const Label &label, int active_set_size):
 	m_numClasses(&numClasses), restLabel(&numClasses) {
 	this->label = label;
 	this->m_label = label;
 
+	cout << "--- Online Gaussian Process Initialization --- Label: " << m_label << " --- " << endl;
 	for (Label i = 0; i < *m_numClasses; i++) {
-		GPC *gpc = new GPC(numFeatures, i, active_set_size);
+		GPC *gpc = new GPC(numFeatures, i, active_set_size, 5, 10, 10);
 		mgpc_map.insert(std::map<Label,GPC*>::value_type(i,gpc));
 	}
 }
@@ -17,12 +16,12 @@ MGPC::MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatu
 	m_numClasses(&numClasses), restLabel(&numClasses), m_hp(&hp) {
 	int active_set_size = 20;
 	for (Label i = 0; i < *m_numClasses; i++) {
-		GPC *gpc = new GPC(numFeatures, i, active_set_size);
+		GPC *gpc = new GPC(numFeatures, i, active_set_size, 5, 10, 10);
 		mgpc_map.insert(std::map<Label,GPC*>::value_type(i,gpc));
 	}
 }
 
-void MGPC::update(Sample &s) {	
+void MGPC::update(Sample &s) {
 	for (Label i = 0; i < *m_numClasses; i++) {
 		Sample sample;
 		sample.x = s.x;
@@ -48,8 +47,8 @@ Label MGPC::predict(const SparseVector& features) {
 		}
 	}
 
-	if(max < 0.3) {
-		cout << "--- Online Gaussian prediction error ---";
+	if(max < 0.2) {
+		cout << "--- Online Gaussian prediction error ---" << endl;
 	}
 	return argmax; // if there is no good prediction, it returns the default label
 }
