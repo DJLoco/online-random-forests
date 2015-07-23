@@ -37,7 +37,7 @@ $(BUILDTARGET): $(OBJECTS) $(SOURCES) $(HEADERS)
 	$(CC) $(CFLAGS) $(INCLUDEPATH) $< -o $@
 
 debug:
-	$(CC) -g -L/usr/local/lib -lconfig++ -lf77blas -latlas -llapack -lgp src/classifier.o src/data.cpp src/hyperparameters.cpp src/Online-Forest.cpp src/onlinenode.o src/onlinerf.o src/onlinetree.o src/randomtest.o src/utilities.o -o Online-Forest
+	$(CC) -ggdb -L/usr/local/lib -lconfig++ -lf77blas -latlas -llapack -lgp src/classifier.o src/data.cpp src/hyperparameters.cpp src/Online-Forest.cpp src/onlinenode.cpp src/onlinerf.o src/onlinetree.o src/randomtest.o src/utilities.o src/mgpc.cpp src/gpc.o -o Online-Forest
 
 clean:
 	rm -f $(SOURCEDIR)/*~ $(SOURCEDIR)/*.o
