@@ -105,7 +105,7 @@ bool GPC::is_pure() {
 
 
 GPC::GPC(int n_features, Label unclassified, int active_set_size, unsigned int max_iters, unsigned int kern_iters, unsigned int noise_iters) {
-	state = INIT;
+	state = TRAIN;
 	input_dim = n_features;
 
 	this->unclassified = unclassified;
@@ -114,6 +114,9 @@ GPC::GPC(int n_features, Label unclassified, int active_set_size, unsigned int m
 	this->kern_iters = kern_iters;
 	this->noise_iters = noise_iters;
 	this->default_optimization_params = (noise_iters == 0);
+	//
+	this->label1 = unclassified;
+	this->label2 = 5;
 
 	select_crit = CIvm::ENTROPY;
 
@@ -268,7 +271,14 @@ double GPC::likelihood(Label prediction, const SparseVector& features) {
 
 	if(predictor != NULL) {
 		predictor->out(result_mat, prob_mat, feature_mat);
-		return prob_mat.getVal(0,0);
+		if(prediction == label1) {
+			if(result_mat.getVal(0,0) - 1 < FLT_EPSILON && result_mat.getVal(0,0) - 1 > -FLT_EPSILON) {
+				return prob_mat.getVal(0,0);
+			}
+			else {
+				return 1 - prob_mat.getVal(0,0);
+			}
+		}
 	}
 	else {
 		// no valid prediction possible => no likelihood!
