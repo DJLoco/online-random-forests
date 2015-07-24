@@ -18,11 +18,11 @@ typedef enum {
 
 class GPC {
 public:
-	GPC(int n_features, Label unclassified=0, int active_set_size=20, unsigned int max_iters=0, unsigned int kern_iters=0, unsigned int noise_iters=0);
+	GPC(int n_features, int active_set_size=20, unsigned int max_iters=0, unsigned int kern_iters=0, unsigned int noise_iters=0);
 
 	void update(const Sample& s);
 	Label predict(const SparseVector& features);
-	double likelihood(Label prediction, const SparseVector& features);
+	double likelihood(const SparseVector& features);
 private:
 	gpc_state state;
 
@@ -49,9 +49,6 @@ private:
 	// it is only used during the initialization phase for choosing
 	// the labels that occur most often
 	std::map<Label,int>* label_counter;
-
-	Label label1, label2;
-	Label unclassified;
 
 	void get_training_matrices(CMatrix*& training_labels, CMatrix*& training_features);
 	void choose_labels_from_buffer();

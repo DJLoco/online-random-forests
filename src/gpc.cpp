@@ -74,6 +74,7 @@ CMatrix* extract_two_labels(CMatrix* labels_matrix, double first_label, double s
  * This routine determines which two labels occur most often in the collected
  * data and makes them being classified.
  */
+/*
 void GPC::choose_labels_from_buffer() {
 	// get the two most used labels
 	bool max1_defined = false;
@@ -98,25 +99,22 @@ void GPC::choose_labels_from_buffer() {
 	label1 = max1;
 	label2 = max2;
 }
+*/
 
 bool GPC::is_pure() {
 	return (label_counter->size() < 2);
 }
 
 
-GPC::GPC(int n_features, Label unclassified, int active_set_size, unsigned int max_iters, unsigned int kern_iters, unsigned int noise_iters) {
+GPC::GPC(int n_features, int active_set_size, unsigned int max_iters, unsigned int kern_iters, unsigned int noise_iters) {
 	state = TRAIN;
 	input_dim = n_features;
 
-	this->unclassified = unclassified;
 	this->active_set_size = active_set_size;
 	this->max_iters = max_iters;
 	this->kern_iters = kern_iters;
 	this->noise_iters = noise_iters;
 	this->default_optimization_params = (noise_iters == 0);
-	//
-	this->label1 = unclassified;
-	this->label2 = 5;
 
 	select_crit = CIvm::ENTROPY;
 
@@ -140,7 +138,7 @@ GPC::GPC(int n_features, Label unclassified, int active_set_size, unsigned int m
 
 void GPC::get_training_matrices(CMatrix*& training_labels, CMatrix*& training_features) {
 
-	int n_samples = (*label_counter)[label1] + (*label_counter)[label2];
+	int n_samples = (*label_counter)[1] + (*label_counter)[-1];
 
 	training_labels = new CMatrix(n_samples, 1);
 	training_features = new CMatrix(n_samples, input_dim);
@@ -148,7 +146,7 @@ void GPC::get_training_matrices(CMatrix*& training_labels, CMatrix*& training_fe
 	int row = 0;
 
 	for(std::vector<Sample>::iterator it=buffered_samples->begin(); it != buffered_samples->end(); it++) {
-		if(it->y != label1 && it->y != label2)
+		if(it->y != 1 && it->y != -1)
 			continue;
 
 		training_labels->setVal(it->y, row, 0);
@@ -161,9 +159,6 @@ void GPC::get_training_matrices(CMatrix*& training_labels, CMatrix*& training_fe
 
 		row++;
 	}
-
-	// TODO: memory leak: delete training_labels before overwriting
-	training_labels = extract_two_labels(training_labels, label1, label2);
 }
 
 
@@ -195,7 +190,7 @@ void GPC::update(const Sample& s) {
 
 
 	switch(state) {
-
+/*
 	case INIT:
 		if(!is_pure() && buffered_samples->size() > active_set_size) {
 			choose_labels_from_buffer();
@@ -203,10 +198,10 @@ void GPC::update(const Sample& s) {
 		}
 
 		break;
-
+*/
 	case TRAIN:
 		// check if we have collected enough data to initiate training
-		if(!is_pure() && (*label_counter)[label1] + (*label_counter)[label2] > active_set_size) {
+		if(!is_pure() && (*label_counter)[1] + (*label_counter)[-1] > active_set_size) {
 
 			// copy the relevant samples into a matrix
 			CMatrix* training_labels;
@@ -255,14 +250,12 @@ Label GPC::predict(const SparseVector& features) {
 
 		predictor->out(pred, ft);
 
-		return (pred.getVal(0,0) == 1) ? label1 : label2;
+		return pred.getVal(0,0);
 	}
-	else {
-		return unclassified;
-	}
+	return 0;
 }
 
-double GPC::likelihood(Label prediction, const SparseVector& features) {
+double GPC::likelihood(const SparseVector& features) {
 	vector<double> feature_vec = to_dense_vector(features);
 
 	CMatrix prob_mat(1,1);
@@ -271,14 +264,8 @@ double GPC::likelihood(Label prediction, const SparseVector& features) {
 
 	if(predictor != NULL) {
 		predictor->out(result_mat, prob_mat, feature_mat);
-		if(prediction == label1) {
-			if(result_mat.getVal(0,0) - 1 < FLT_EPSILON && result_mat.getVal(0,0) - 1 > -FLT_EPSILON) {
-				return prob_mat.getVal(0,0);
-			}
-			else {
-				return 1 - prob_mat.getVal(0,0);
-			}
-		}
+
+		return (((int) result_mat.getVal(0,0)) == 1) ? result_mat.getVal(0,0) : 1 - result_mat.getVal(0,0);
 	}
 	else {
 		// no valid prediction possible => no likelihood!
