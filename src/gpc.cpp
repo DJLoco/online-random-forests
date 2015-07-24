@@ -265,7 +265,7 @@ double GPC::likelihood(const SparseVector& features) {
 	if(predictor != NULL) {
 		predictor->out(result_mat, prob_mat, feature_mat);
 
-		return (((int) result_mat.getVal(0,0)) == 1) ? result_mat.getVal(0,0) : 1 - result_mat.getVal(0,0);
+		return (((int) result_mat.getVal(0,0)) == 1) ? prob_mat.getVal(0,0) : 1 - prob_mat.getVal(0,0);
 	}
 	else {
 		// no valid prediction possible => no likelihood!
