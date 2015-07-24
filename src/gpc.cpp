@@ -262,13 +262,13 @@ Label GPC::predict(const SparseVector& features) {
 double GPC::likelihood(Label prediction, const SparseVector& features) {
 	vector<double> feature_vec = to_dense_vector(features);
 
-	CMatrix pred_mat(1,1, (double) prediction);
+	CMatrix prob_mat(1,1);
 	CMatrix result_mat(1,1);
 	CMatrix feature_mat(1, input_dim, feature_vec);
 
 	if(predictor != NULL) {
-		predictor->likelihoods(result_mat, pred_mat, feature_mat);
-		return result_mat.getVal(0,0);
+		predictor->out(result_mat, prob_mat, feature_mat);
+		return prob_mat.getVal(0,0);
 	}
 	else {
 		// no valid prediction possible => no likelihood!
