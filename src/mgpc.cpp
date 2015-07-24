@@ -7,16 +7,17 @@ MGPC::MGPC(const int &numClasses, const int &numFeatures, const Label &label, in
 
 	cout << "--- Online Gaussian Process Initialization --- Label: " << m_label << " --- " << endl;
 	for (Label i = 0; i < *m_numClasses; i++) {
-		GPC *gpc = new GPC(numFeatures, i, active_set_size, 1, 1, 1);
+		GPC *gpc = new GPC(numFeatures, active_set_size, 1, 1, 1);
 		mgpc_map.insert(std::map<Label,GPC*>::value_type(i,gpc));
 	}
 }
 
 MGPC::MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures):
 	m_numClasses(&numClasses), restLabel(&numClasses), m_hp(&hp) {
+	this->m_label = 0;
 	int active_set_size = 20;
 	for (Label i = 0; i < *m_numClasses; i++) {
-		GPC *gpc = new GPC(numFeatures, i, active_set_size, 1, 1, 1);
+		GPC *gpc = new GPC(numFeatures, active_set_size, 1, 1, 1);
 		mgpc_map.insert(std::map<Label,GPC*>::value_type(i,gpc));
 	}
 }
@@ -27,9 +28,9 @@ void MGPC::update(Sample &s) {
 		sample.x = s.x;
 		
 		if(s.y == i)
-			sample.y = s.y;
+			sample.y = 1;
 		else
-			sample.y = *restLabel;
+			sample.y = -1;
 	
 		sample.w = 1.0;
 
@@ -38,11 +39,11 @@ void MGPC::update(Sample &s) {
 }
 
 Label MGPC::predict(const SparseVector& features) {
-	int argmax = label;
+	int argmax = m_label;
 	double max = 0;
 	for (int i = 0; i < *m_numClasses; i++) {
-		if(max < mgpc_map[i]->likelihood(i, features)) {
-			max = mgpc_map[i]->likelihood(i, features);
+		if(max < mgpc_map[i]->likelihood(features)) {
+			max = mgpc_map[i]->likelihood(features);
 			argmax = i;
 		}
 	}
@@ -71,11 +72,11 @@ void MGPC::train(DataSet &dataset) {
 Result MGPC::eval(Sample &sample) {
 	Result result;
 	vector<double> confidence;
-	int prediction;
-	int argmax = 0;
+	int argmax = m_label;
 	double max = 0;
+
 	for (int i = 0; i < *m_numClasses; i++) {
-		double likelihood = mgpc_map[i]->likelihood(i, sample.x);
+		double likelihood = mgpc_map[i]->likelihood(sample.x);
 		confidence.push_back(likelihood);
 		if(max < likelihood) {
 			max = likelihood;
@@ -83,14 +84,9 @@ Result MGPC::eval(Sample &sample) {
 		}
 	}
 
-	if(max < 0.0001) {
-		prediction = argmax;
-	} else
-		prediction = argmax;
-
 	result.confidence = confidence;
-	result.prediction = prediction;
-	std::cout << "Prediction: " << prediction << ", Label: " << sample.y << ", confidence: " << confidence << "; 42" << std::endl;
+	result.prediction = argmax;
+	std::cout << "Prediction: " << argmax << ", Label: " << sample.y << ", confidence: " << confidence << ";" << std::endl;
 	return result;
 }
 
@@ -102,7 +98,7 @@ vector<Result> MGPC::test(DataSet &dataset) {
 
 	double error = compError(results, dataset);
 	if (m_hp->verbose >= 3) {
-		cout << "--- Online Random Tree test error: " << error << endl;
+		cout << "--- Online Gaussian Process test error: " << error << endl;
 	}
 
 	return results;
