@@ -80,7 +80,7 @@ public:
 			}
 
 			if (mgpc != NULL) {
-				result.prediction = mgpc->predict(sample.x);
+				return mgpc->eval(sample);
 			}
 
             return result;

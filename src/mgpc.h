@@ -5,11 +5,10 @@
 //  #define RESTLABEL -1;
 class MGPC: public Classifier {
 public:
-	MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const Label &label=0, int active_set_size=20);
+	MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const Label &label);
     MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures);
 		
 	virtual void update(Sample &s);
-	Label predict(const SparseVector &features);
 	
 	virtual void train(DataSet &dataset);
 	
@@ -19,12 +18,10 @@ public:
 	
 private:
 	const int *m_numClasses;
-	const int *restLabel;
 	const Hyperparameters *m_hp;
 
 	std::map<Label, GPC*> mgpc_map;
 	
-	Label m_label;
-	Label label;
+	const Label *m_label;
 };
 

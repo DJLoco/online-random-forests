@@ -1,9 +1,7 @@
 #include "mgpc.h"
 
-MGPC::MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const Label &label, int active_set_size):
-	m_numClasses(&numClasses) {
-	this->label = label;
-	this->m_label = label;
+MGPC::MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const Label &label):
+	m_numClasses(&numClasses), m_label(&label) {
 
 	cout << "--- Online Gaussian Process Initialization --- Label: " << m_label << " --- " << endl;
 	for (Label i = 0; i < *m_numClasses; i++) {
@@ -12,9 +10,9 @@ MGPC::MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatu
 	}
 }
 
-MGPC::MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures):
-	m_numClasses(&numClasses), m_hp(&hp) {
-	this->m_label = 0;
+MGPC::MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures):	
+	m_numClasses(&numClasses), m_hp(&hp), m_label(new int(0)) {
+
 	for (Label i = 0; i < *m_numClasses; i++) {
 		GPC *gpc = new GPC(numFeatures, hp.activeSetSize, hp.maxIters, hp.kernIters, hp.noiseIters);
 		mgpc_map.insert(std::map<Label,GPC*>::value_type(i,gpc));
@@ -37,22 +35,6 @@ void MGPC::update(Sample &s) {
 	}
 }
 
-Label MGPC::predict(const SparseVector& features) {
-	int argmax = m_label;
-	double max = 0;
-	for (int i = 0; i < *m_numClasses; i++) {
-		if(max < mgpc_map[i]->likelihood(features)) {
-			max = mgpc_map[i]->likelihood(features);
-			argmax = i;
-		}
-	}
-
-	if(max < 0.00001) {
-		cout << "--- Online Gaussian prediction error ---" << endl;
-	}
-	return argmax; // if there is no good prediction, it returns the default label
-}
-
 void MGPC::train(DataSet &dataset) {
 	vector<int> randIndex;
 	int sampRatio = dataset.m_numSamples / 10;
@@ -71,8 +53,8 @@ void MGPC::train(DataSet &dataset) {
 Result MGPC::eval(Sample &sample) {
 	Result result;
 	vector<double> confidence;
-	int argmax = m_label;
-	double max = 0;
+	int argmax = *m_label;
+	double max = 0.1;
 
 	for (int i = 0; i < *m_numClasses; i++) {
 		double likelihood = mgpc_map[i]->likelihood(sample.x);
