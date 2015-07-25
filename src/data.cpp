@@ -26,18 +26,28 @@ void DataSet::findFeatRange() {
 }
 
 void DataSet::loadTrain(Hyperparameters hp) {
-    if(hp.trainData.substr(hp.trainData.find_last_of(".")) == ".libsvm") {
-	loadLIBSVM(hp.trainData);
-    } else {
-	loadRGBD(hp.trainLabels, hp.trainData, hp.numTrain);
+	string extension = hp.trainData.substr(hp.trainData.find_last_of("."));
+    if(extension == ".libsvm") {
+		loadLIBSVM(hp.trainData);
+    } 
+	else if(extension == ".ubyte") {
+		loadUByte(hp.trainLabels, hp.trainData, hp.numTrain);
+	} 
+	else {
+		loadRGBD(hp.trainLabels, hp.trainData, hp.numTrain);
     }
 }
 
 void DataSet::loadTest(Hyperparameters hp) {
+	string extension = hp.trainData.substr(hp.trainData.find_last_of("."));
     if(hp.trainData.substr(hp.trainData.find_last_of(".")) == ".libsvm") {
-	loadLIBSVM(hp.testData);
-    } else {
-	loadRGBD(hp.testLabels, hp.testData, hp.numTest);
+		loadLIBSVM(hp.testData);
+    }
+	else if(extension == ".ubyte") {
+		loadUByte(hp.testLabels,hp.testData,hp.numTest);
+	}
+	else {
+		loadRGBD(hp.testLabels, hp.testData, hp.numTest);
     }
 }
 
@@ -47,7 +57,7 @@ void DataSet::loadRGBD(string fileLabels, string fileData, int n_samples = 0) {
     ifstream fLabels(fileLabels.c_str());
 
     if (!fLabels) {
-	cout << "Could not open input file " << fileLabels << endl;
+		cout << "Could not open input file " << fileLabels << endl;
         exit(EXIT_FAILURE);
     }
 
@@ -81,11 +91,11 @@ void DataSet::loadRGBD(string fileLabels, string fileData, int n_samples = 0) {
         fLabels >> sample.y; // read label
         sample.w = 1.0; // set weight
 
-	for (int colIndex = 0; colIndex < m_numFeatures; colIndex++) {
-	    float f;
-	    fData >> f; 
-	    x[colIndex] = (double) f;
-	}
+		for (int colIndex = 0; colIndex < m_numFeatures; colIndex++) {
+			float f;
+			fData >> f; 
+			x[colIndex] = (double) f;
+		}
 
         copy(x, sample.x);
         m_samples.push_back(sample); // push sample into dataset
@@ -105,6 +115,73 @@ void DataSet::loadRGBD(string fileLabels, string fileData, int n_samples = 0) {
 
     cout << "Loaded " << m_numSamples << " samples with " << m_numFeatures;
     cout << " features and " << m_numClasses << " classes." << endl;
+}
+
+void DataSet::loadUByte(string fileLabels, string fileData, int n_samples = 0) {
+	ifstream fData(fileData.c_str(), std::ifstream::binary);
+	ifstream fLabels(fileLabels.c_str(), std::ifstream::binary);
+
+	// auto fLabels = fopen(fileLabels.c_str(), "rb");
+	// auto fData = fopen(fileData.c_str(), "rb");
+    if (!fLabels) {
+		cout << "Could not open input file " << fileLabels << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    if (!fData) {
+        cout << "Could not open input file " << fileData << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    cout << "Loading data file: " << fileData << ", " << fileLabels << " ... " << endl;
+
+    // Reading the header of labels file
+	fLabels.ignore(8);
+	fData.ignore(16);
+	m_numSamples = 60000;
+	m_numClasses = 10;
+	m_numFeatures = 784;
+	
+	m_numSamples = (n_samples > m_numSamples || n_samples == 0) ? m_numSamples : n_samples;
+		
+    // Reading the data
+    m_samples.clear();
+ 
+    for (int i = 0; i < m_numSamples; i++) {
+        wsvector<double> x(m_numFeatures);
+        Sample sample;
+        resize(sample.x, m_numFeatures);
+		
+		char byte;
+		fLabels.read(&byte, 1);
+		
+		sample.y = (int) byte;
+        sample.w = 1.0; // set weight
+
+		for (int colIndex = 0; colIndex < m_numFeatures; colIndex++) {
+			fData.read(&byte, 1);
+			x[colIndex] = (double) byte;
+		}
+
+        copy(x, sample.x);
+        m_samples.push_back(sample); // push sample into dataset
+    }
+
+    fData.close();
+    fLabels.close();
+
+    if (m_numSamples != (int) m_samples.size()) {
+        cout << "Could not load " << m_numSamples << " samples from " << fileData;
+        cout << ". There were only " << m_samples.size() << " samples!" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // Find the data range
+    findFeatRange();
+	
+    cout << "Loaded " << m_numSamples << " samples with " << m_numFeatures;
+    cout << " features and " << m_numClasses << " classes." << endl;
+	
 }
 
 void DataSet::loadLIBSVM(string filename) {
@@ -147,7 +224,7 @@ void DataSet::loadLIBSVM(string filename) {
             prePos = curPos + 1;
             curPos = line.find(' ', prePos);
             tmpStr = line.substr(prePos, curPos - prePos);
-	    string andi = tmpStr.c_str();
+			string andi = tmpStr.c_str();
             x[colIndex] = atof(tmpStr.c_str());
         }
         copy(x, sample.x);

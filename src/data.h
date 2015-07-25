@@ -5,6 +5,9 @@
 #include <vector>
 #include <gmm/gmm.h>
 #include <string>
+#include <stdint.h>
+#include <stdio.h>
+
 
 #include "hyperparameters.h"
 
@@ -18,22 +21,23 @@ typedef rsvector<double> SparseVector;
 
 // DATA CLASSES
 class Sample {
-  public:
+public:
     SparseVector x;
     Label y;
     Weight w;
 
     void disp() {
-	cout << "Sample: y = " << y << ", w = " << w << ", x = ";
-	cout << x << endl;
+		cout << "Sample: y = " << y << ", w = " << w << ", x = ";
+		cout << x << endl;
     }
 };
 
 class DataSet {
-  private:
+private:
     void loadLIBSVM(string filename);
     void loadRGBD(string fileLabels, string fileData, int n_samples);
-  public:
+	void loadUByte(string fileLabels, string fileData, int n_samples);
+public:
     vector<Sample> m_samples;
     int m_numSamples;
     int m_numFeatures;
@@ -49,7 +53,7 @@ class DataSet {
 };
 
 class Result {
-  public:
+public:
     vector<double> confidence;
     int prediction;
 };
