@@ -29,6 +29,7 @@ void help() {
 	cout << "\t --ortgp : \t use Online Random Tree with GP (ORTGP) algorithm." << endl;
     cout << "\t --orf : \t use Online Random Forest (ORF) algorithm." << endl;
     cout << "\t --orfgp : \t use Online Random Forest with GP (ORFGP) algorithm." << endl;
+    cout << "\t --ogp : \t use Online Gaussian Process algorithm." << endl;
     cout << endl << endl;
     cout << "\t --train : \t train the classifier." << endl;
     cout << "\t --test : \t test the classifier." << endl;
