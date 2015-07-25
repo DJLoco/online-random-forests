@@ -22,6 +22,12 @@ class Hyperparameters
     int numTrees;
     int useSoftVoting;
     int numEpochs;
+	
+	// Gaussian Process
+	int activeSetSize;
+	int maxIters;
+	int kernIters;
+	int noiseIters;
 
     // Data
     string trainData;

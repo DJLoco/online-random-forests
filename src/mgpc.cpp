@@ -1,23 +1,22 @@
 #include "mgpc.h"
 
-MGPC::MGPC(const int &numClasses, const int &numFeatures, const Label &label, int active_set_size):
-	m_numClasses(&numClasses), restLabel(&numClasses) {
+MGPC::MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const Label &label, int active_set_size):
+	m_numClasses(&numClasses) {
 	this->label = label;
 	this->m_label = label;
 
 	cout << "--- Online Gaussian Process Initialization --- Label: " << m_label << " --- " << endl;
 	for (Label i = 0; i < *m_numClasses; i++) {
-		GPC *gpc = new GPC(numFeatures, active_set_size, 1, 1, 1);
+		GPC *gpc = new GPC(numFeatures, hp.activeSetSize, hp.maxIters, hp.kernIters, hp.noiseIters);
 		mgpc_map.insert(std::map<Label,GPC*>::value_type(i,gpc));
 	}
 }
 
 MGPC::MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures):
-	m_numClasses(&numClasses), restLabel(&numClasses), m_hp(&hp) {
+	m_numClasses(&numClasses), m_hp(&hp) {
 	this->m_label = 0;
-	int active_set_size = 20;
 	for (Label i = 0; i < *m_numClasses; i++) {
-		GPC *gpc = new GPC(numFeatures, active_set_size, 1, 1, 1);
+		GPC *gpc = new GPC(numFeatures, hp.activeSetSize, hp.maxIters, hp.kernIters, hp.noiseIters);
 		mgpc_map.insert(std::map<Label,GPC*>::value_type(i,gpc));
 	}
 }

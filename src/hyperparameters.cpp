@@ -23,6 +23,12 @@ Hyperparameters::Hyperparameters(const string& confFile) {
     numEpochs = configFile.lookup("Forest.numEpochs");
     useSoftVoting = configFile.lookup("Forest.useSoftVoting");
 
+	// GP
+	activeSetSize = configFile.lookup("Gauss.activeSetSize");
+	maxIters = configFile.lookup("Gauss.maxIters");
+	kernIters = configFile.lookup("Gauss.kernIters");
+	noiseIters = configFile.lookup("Gauss.noiseIters");
+
     // Data
     trainData = (const char *) configFile.lookup("Data.trainData");
     trainLabels = (const char *) configFile.lookup("Data.trainLabels");

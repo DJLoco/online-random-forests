@@ -5,7 +5,7 @@
 //  #define RESTLABEL -1;
 class MGPC: public Classifier {
 public:
-	MGPC(const int &numClasses, const int &numFeatures, const Label &label=0, int active_set_size=20);
+	MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const Label &label=0, int active_set_size=20);
     MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures);
 		
 	virtual void update(Sample &s);

@@ -47,7 +47,7 @@ void OnlineNode::update(Sample &sample) {
 											 parentStats.second, enableGP);
         } else if(shouldITrainGP() && enableGP) {
 			if(mgpc == NULL) {
-				mgpc = new MGPC(*m_numClasses, *m_numFeatures, m_label);
+				mgpc = new MGPC(*m_hp, *m_numClasses, *m_numFeatures, m_label);
 			}
 			mgpc->update(sample);
 		}
