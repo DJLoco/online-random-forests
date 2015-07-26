@@ -47,6 +47,7 @@ public:
     vector<double> m_maxFeatRange;
 
     void findFeatRange();
+	void adaptRange();
 
     void loadTrain(Hyperparameters hp);
     void loadTest(Hyperparameters hp);

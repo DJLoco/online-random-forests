@@ -25,6 +25,25 @@ void DataSet::findFeatRange() {
     }
 }
 
+void DataSet::adaptRange() {
+	double minVal = 0, maxVal = 0;
+	for (int i = 0; i < m_numSamples; i++) {
+		for (int j = 0; j < m_numFeatures; j++) {
+			double feature = m_samples[i].x[j];
+			if(minVal > feature)
+				minVal = feature;
+			if(maxVal < feature)
+				maxVal = feature;
+		}
+	}
+
+	for (int i = 0; i < m_numSamples; i++) {
+		for (int j = 0; j < m_numFeatures; j++) {
+			m_samples[i].x[j] = (m_samples[i].x[j]-minVal)/(maxVal-minVal);
+		}
+	}
+}
+
 void DataSet::loadTrain(Hyperparameters hp) {
 	string extension = hp.trainData.substr(hp.trainData.find_last_of("."));
     if(extension == ".libsvm") {
@@ -176,11 +195,13 @@ void DataSet::loadUByte(string fileLabels, string fileData, int n_samples = 0) {
         exit(EXIT_FAILURE);
     }
 
+	adaptRange();
     // Find the data range
     findFeatRange();
 	
     cout << "Loaded " << m_numSamples << " samples with " << m_numFeatures;
     cout << " features and " << m_numClasses << " classes." << endl;
+	
 	
 }
 
