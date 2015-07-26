@@ -3,7 +3,7 @@
 MGPC::MGPC(const Hyperparameters &hp, const int &numClasses, const int &numFeatures, const Label &label):
 	m_numClasses(&numClasses), m_label(&label) {
 
-	cout << "--- Online Gaussian Process Initialization --- Label: " << m_label << " --- " << endl;
+	cout << "--- Online Gaussian Process Initialization --- Default Leaf Label: " << m_label << " --- " << endl;
 	for (Label i = 0; i < *m_numClasses; i++) {
 		GPC *gpc = new GPC(numFeatures, hp.activeSetSize, hp.maxIters, hp.kernIters, hp.noiseIters);
 		mgpc_map.insert(std::map<Label,GPC*>::value_type(i,gpc));
