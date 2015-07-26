@@ -9,13 +9,6 @@
 
 #include <vector>
 
-
-typedef enum {
-	INIT,
-	TRAIN
-} gpc_state;
-
-
 class GPC {
 public:
 	GPC(int n_features, int active_set_size=20, unsigned int max_iters=0, unsigned int kern_iters=0, unsigned int noise_iters=0);
@@ -24,8 +17,6 @@ public:
 	Label predict(const SparseVector& features);
 	double likelihood(const SparseVector& features);
 private:
-	gpc_state state;
-
 	// parameters for the gaussian process implementation
 
 	// dimension of one sample
