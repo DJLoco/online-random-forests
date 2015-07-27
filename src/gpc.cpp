@@ -52,7 +52,18 @@ GPC::GPC(int n_features, int active_set_size, unsigned int max_iters, unsigned i
 	// noise will be initialized in the training routine
 	// s.t. the target can be set
 	noise = (CNoise*) NULL;
-	kernel = new CRbfKern( input_dim );
+	// kernel = new CRbfKern( input_dim );
+	kernel = new CRbfardKern( input_dim );
+
+	//  new CLinardKern(X)
+	// 	new CLinKern(X)
+	// 	new CPolyardKern(X)
+	// 	new CPolyKern(X)
+	// 	new CRbfardKern(X)
+	// 	new CExpKern(X)
+	// 	new CRatQuadKern(X)
+	// 	new CMlpardKern(X)
+	// 	new CMlpKern(X)
 
 	CDist* prior = new CGammaDist();
 	prior->setParam(1.0, 0);
